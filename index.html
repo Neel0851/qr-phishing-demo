@@ -1,53 +1,183 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Tim Hortons Reward Giveaway</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tim Hortons - Your Personal Page</title>
   <style>
-    body { font-family: Arial, background: #fff8f0; text-align: center; padding: 50px; }
-    .container { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; display: inline-block; }
-    input, button { margin: 10px; padding: 10px; width: 80%; }
-    h1 { color: #d62828; }
+    @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap');
+    
+    :root {
+      --tims-red: #d62828;
+      --tims-white: #ffffff;
+      --tims-light-bg: #fff8f0;
+      --tims-dark-text: #333333;
+    }
+
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background: var(--tims-light-bg);
+      color: var(--tims-dark-text);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+
+    .container {
+      background: var(--tims-white);
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .container:hover {
+      transform: translateY(-5px);
+    }
+
+    .gift-card-image {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: var(--tims-red);
+      font-size: 2.2em;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    p {
+      font-size: 1em;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      color: #666;
+    }
+
+    input[type="text"], input[type="email"] {
+      width: 80%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+      font-size: 1em;
+    }
+
+    .cta-button {
+      background-color: var(--tims-red);
+      color: var(--tims-white);
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.1em;
+      font-weight: 700;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+      display: inline-block;
+      width: 80%;
+      margin-top: 10px;
+    }
+
+    .cta-button:hover {
+      background-color: #a71d1d;
+    }
+
+    .response {
+      margin-top: 20px;
+      font-weight: 700;
+      color: var(--tims-dark-text);
+      font-size: 1em;
+    }
+
+    .footer {
+      font-size: 0.8em;
+      color: #888;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🎉 Win a $25 Tim Hortons Gift Card!</h1>
-    <p>Enter your details to claim your reward:</p>
-    <input type="text" id="name" placeholder="Your Name"><br>
-    <input type="email" id="email" placeholder="Your Email"><br>
-    <button onclick="submitData()">Claim Now</button>
-    <p id="response"></p>
+    <h1>Welcome to Tim Hortons!</h1>
+    <p>We're glad you're here. We can save your name locally on your browser for a more personalized experience.</p>
+    <img src="http://googleusercontent.com/file_content/0" alt="Tim Hortons $25 Gift Card" class="gift-card-image">
+    
+    <div id="form-section">
+      <input type="text" id="name" placeholder="Your Name"><br>
+      <input type="email" id="email" placeholder="Your Email (optional)"><br>
+      <button class="cta-button" onclick="saveData()">Save My Info</button>
+      <p class="footer">Your data is saved in your browser's local storage and is not transmitted to any server.</p>
+    </div>
+    
+    <div id="greeting-section" style="display: none;">
+      <h2 id="greeting-message"></h2>
+      <p>Your information is saved in your browser. Feel free to clear your cache to remove it.</p>
+      <button class="cta-button" onclick="clearData()">Clear My Info</button>
+    </div>
+    
+    <p class="response" id="response-message"></p>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
   <script>
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const responseMessage = document.getElementById('response-message');
+    const formSection = document.getElementById('form-section');
+    const greetingSection = document.getElementById('greeting-section');
+    const greetingMessage = document.getElementById('greeting-message');
+
+    // Check for existing data on page load
+    window.onload = function() {
+      const storedName = localStorage.getItem('userName');
+      if (storedName) {
+        showGreeting(storedName);
+      }
     };
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    function saveData() {
+      const name = nameInput.value;
+      const email = emailInput.value;
 
-    function submitData() {
-      const name = document.getElementById('name').value;
-      const email = document.getElementById('email').value;
+      if (name) {
+        // Store the data in local storage
+        localStorage.setItem('userName', name);
+        localStorage.setItem('userEmail', email); // Storing email is optional
+        showGreeting(name);
+      } else {
+        responseMessage.innerText = "Please enter your name.";
+        responseMessage.style.color = "var(--tims-red)";
+      }
+    }
 
-      db.collection("demo_submissions").add({
-        name: name,
-        email: email,
-        timestamp: new Date()
-      }).then(() => {
-        document.getElementById('response').innerText = "✅ Thank you! Your gift card will be emailed shortly.";
-      }).catch((error) => {
-        console.error("Error saving data: ", error);
-      });
+    function clearData() {
+      // Clear data from local storage
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userEmail');
+      
+      // Reset the UI
+      formSection.style.display = 'block';
+      greetingSection.style.display = 'none';
+      nameInput.value = '';
+      emailInput.value = '';
+      responseMessage.innerText = '';
+    }
+
+    function showGreeting(name) {
+      formSection.style.display = 'none';
+      greetingSection.style.display = 'block';
+      greetingMessage.innerText = `Hello, ${name}!`;
     }
   </script>
 </body>
